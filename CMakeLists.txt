@@ -24,45 +24,64 @@ ENDIF()
 # EnergyPlus Idd version
 SET(ENERGYPLUS_VERSION "8.0" CACHE INTERNAL "EnergyPlus Version")
 
-
-OPTION( NIGHTLY_BUILD "Use configurations for Nightly Build" OFF )
-
 SET(OPENSTUDIO_VERSION "${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}.${CMAKE_VERSION_PATCH}")
 
 # Search for modules in the openstudiocore dir first to override cmake ones 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/openstudiocore/CMake" ${CMAKE_SOURCE_DIR})
 
+# Build OpenStudio Applications
+OPTION( BUILD_OPENSTUDIO_APPLICATIONS "Build OpenStudio Applications" ON )
+IF(BUILD_OPENSTUDIO_APPLICATIONS)
+  # Build CSharp bindings
+  OPTION( BUILD_CSHARP_BINDINGS "Build CSharp bindings" OFF )
+
+  # Build Node V8 bindings
+  OPTION( BUILD_V8_BINDINGS "Build V8 bindings" OFF )
+
+  # Build Python bindings
+  OPTION( BUILD_PYTHON_BINDINGS "Build Python bindings" OFF )
+  
+  # Nightly Build
+  OPTION( NIGHTLY_BUILD "Use configurations for Nightly Build" OFF )
+  
+  # Build package
+  OPTION( BUILD_PACKAGE "Build package" OFF )  
+  
+  # Build Ruby gem
+  OPTION( BUILD_RUBY_GEM "Build Ruby Gem" OFF )
+
+  # Package Radiance and EnergyPlus for convenience 
+  OPTION( PACKAGE_RADIANCE_AND_ENERGYPLUS "Package Radiance and EnergyPlus" OFF )
+  MARK_AS_ADVANCED(FORCE PACKAGE_RADIANCE_AND_ENERGYPLUS)  
+ELSE()
+  UNSET(BUILD_CSHARP_BINDINGS CACHE )
+  UNSET(BUILD_V8_BINDINGS CACHE )
+  UNSET(BUILD_PYTHON_BINDINGS CACHE )
+  UNSET(NIGHTLY_BUILD CACHE )
+  UNSET(BUILD_PACKAGE CACHE )
+  UNSET(BUILD_RUBY_GEM CACHE )
+  UNSET(PACKAGE_RADIANCE_AND_ENERGYPLUS CACHE )
+ENDIF()
+
+# Build ctest testing
+OPTION( BUILD_TESTING "Build testing targets" OFF )
+IF (BUILD_TESTING)
+  # Build test runner targets.
+  # This is a convenience for Visual Studio users
+  OPTION( ENABLE_TEST_RUNNER_TARGETS "Create test runner targets" OFF )
+ELSE()
+  UNSET(ENABLE_TEST_RUNNER_TARGETS CACHE )
+ENDIF()
+
 # Build C++ documentation using Doxygen
 # Requires: doxygen
 OPTION( BUILD_DOCUMENTATION "Build Documentation" OFF )
-
 IF(BUILD_DOCUMENTATION)
   Find_Package( Doxygen REQUIRED )
 ENDIF()
 
-# Build CSharp bindings
-# Requires: SWIG
-OPTION( BUILD_CSHARP_BINDINGS "Build CSharp bindings" OFF )
-
-# Build Node V8 bindings
-# Requires: SWIG
-OPTION( BUILD_V8_BINDINGS "Build V8 bindings" OFF )
-
-# Build Python bindings
-# Requires: SWIG Python
-OPTION( BUILD_PYTHON_BINDINGS "Build Python bindings" OFF )
-
-# Build ctest testing
-# Requires: EnergyPlus
-OPTION( BUILD_TESTING "Build testing targets" OFF )
-
-# Build package
-# Requires: EnergyPlus
-OPTION( BUILD_PACKAGE "Build package" OFF )
-
-# Build test runner targets.
-# This is a convenience for Visual Studio users
-OPTION( ENABLE_TEST_RUNNER_TARGETS "Create test runner targets" OFF )
+# Use PCH
+OPTION( USE_PCH "Use precompiled headers" OFF )
 
 # Build with OpenSSL support
 SET( BUILD_WITH_OPENSSL ON CACHE INTERNAL "Build With OpenSSL Support For SSH Connections" )
@@ -99,8 +118,6 @@ ELSEIF(WIN32)
   SET(OPENSSL_ROOT_DIR "${CMAKE_BINARY_DIR}/${OPENSSL_PATH}")
 ENDIF()
 
-
-
 IF(MSVC)
   # Build with Multiple Processes
   SET(BUILD_WITH_MULTIPLE_PROCESSES ON CACHE BOOL "/MP compiler flag for full processor utilization")
@@ -115,18 +132,11 @@ MARK_AS_ADVANCED(
   ENERGYPLUS_WEATHER_DIR
 )
 
-# Package Radiance and EnergyPlus for convenience 
-OPTION( PACKAGE_RADIANCE_AND_ENERGYPLUS "Package Radiance and EnergyPlus" OFF )
-MARK_AS_ADVANCED(FORCE PACKAGE_RADIANCE_AND_ENERGYPLUS)
-
 IF (PACKAGE_RADIANCE_AND_ENERGYPLUS)
   MESSAGE(WARNING "Packaging of Radiance and EnergyPlus is intended for internal use and deployment only")
   SET(ENERGYPLUS_LOCATION "" CACHE PATH "Location of EnergyPlus to Package")
   SET(RADIANCE_LOCATION "" CACHE PATH "Location of Radiance to Package")
 ENDIF()
-
-# Build Ruby gem
-OPTION( BUILD_RUBY_GEM "Build Ruby Gem" OFF )
 
 IF (BUILD_V8_BINDINGS)
   IF(WIN32)
@@ -165,26 +175,12 @@ IF (BUILD_RUBY_GEM)
   MESSAGE("Enabling Ruby Gem overrides all of your packaging options. To build the Ruby Gem please type 'make package'")
 ENDIF()
 
-# Require that DAKOTA_FOUND
-#
-# Some code (certain analysisdriver tests) are conditionally compiled depending on 
-# whether Dakota is found on the system. If this variable is set to true, CMake will give a configure
-# error in the case that Dakota is not found.
-#
-# Dakota is an optional third party algorithm library that we use through its command line
-# interface.
-OPTION( REQUIRE_DAKOTA "Ensure Dakota (third party analysis tool) is found" OFF )
-MARK_AS_ADVANCED( REQUIRE_DAKOTA )
-
 IF(MSVC)
   # need to know if using the Express edition of Visual Studio, devenv is split into multiple programs
   OPTION( MSVC_IS_EXPRESS "using the Express editions of Visual Studio, must install both C++ and C# versions" FALSE )
   
   MARK_AS_ADVANCED(CMAKE_CONFIGURATION_TYPES)
 ENDIF()
-
-# Use PCH
-OPTION( USE_PCH "Use precompiled headers" OFF )
 
 FIND_PACKAGE (Qt4 4.8.0 COMPONENTS QtCore QtGui QtSql QtNetwork QtXml QtXmlPatterns QtWebKit)
 MARK_AS_ADVANCED(QT_QTMOTIF_INCLUDE_DIR)
@@ -685,21 +681,21 @@ ExternalProject_Add( OpenStudioCore
     -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
     -DCMAKE_OSX_SYSROOT:STRING=${CMAKE_OSX_SYSROOT}
     -DENERGYPLUS_VERSION:STRING=${ENERGYPLUS_VERSION}
-    -DBUILD_DOCUMENTATION:BOOL=${BUILD_DOCUMENTATION}
+    -DBUILD_OPENSTUDIO_APPLICATIONS:BOOL=${BUILD_OPENSTUDIO_APPLICATIONS}
     -DBUILD_CSHARP_BINDINGS:BOOL=${BUILD_CSHARP_BINDINGS}
     -DBUILD_V8_BINDINGS:BOOL=${BUILD_V8_BINDINGS}
     -DBUILD_NODE_MODULES:BOOL=${BUILD_NODE_MODULES}
     -DBUILD_PYTHON_BINDINGS:BOOL=${BUILD_PYTHON_BINDINGS}
-    -DBUILD_TESTING:BOOL=${BUILD_TESTING}
     -DBUILD_PACKAGE:BOOL=${BUILD_PACKAGE}
-    -DENABLE_TEST_RUNNER_TARGETS:BOOL=${ENABLE_TEST_RUNNER_TARGETS}
-    -DBUILD_WITH_MULTIPLE_PROCESSES:BOOL=${BUILD_WITH_MULTIPLE_PROCESSES}
-    -DBUILD_WITH_OPENSSL:BOOL=${BUILD_WITH_OPENSSL}
     -DBUILD_RUBY_GEM:BOOL=${BUILD_RUBY_GEM}
     -DBUILD_RUBY_GEM_WITH_LIBS:BOOL=${BUILD_RUBY_GEM_WITH_LIBS}
-    -DREQUIRE_DAKOTA:BOOL=${REQUIRE_DAKOTA}
-    -DMSVC_IS_EXPRESS:BOOL=${MSVC_IS_EXPRESS}
+    -DBUILD_TESTING:BOOL=${BUILD_TESTING}
+    -DENABLE_TEST_RUNNER_TARGETS:BOOL=${ENABLE_TEST_RUNNER_TARGETS}
+    -DBUILD_DOCUMENTATION:BOOL=${BUILD_DOCUMENTATION}
     -DUSE_PCH:BOOL=${USE_PCH}
+    -DBUILD_WITH_MULTIPLE_PROCESSES:BOOL=${BUILD_WITH_MULTIPLE_PROCESSES}
+    -DBUILD_WITH_OPENSSL:BOOL=${BUILD_WITH_OPENSSL}
+    -DMSVC_IS_EXPRESS:BOOL=${MSVC_IS_EXPRESS}
     -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
     -DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}
     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}

@@ -13,9 +13,6 @@ SET(OPENSTUDIO_LONG_VERSION "${CMAKE_VERSION_MAJOR}.${CMAKE_VERSION_MINOR}.${CMA
 # EnergyPlus Idd version 
 SET(ENERGYPLUS_VERSION "8.0" CACHE INTERNAL "EnergyPlus Version")
 
-# Dakota version
-SET(DAKOTA_VERSION "5.3.1")
-
 # configure file with version information
 CONFIGURE_FILE( ${CMAKE_SOURCE_DIR}/OpenStudio.in ${CMAKE_BINARY_DIR}/src/OpenStudio.hxx )
 
@@ -36,42 +33,65 @@ IF( UNIX AND NOT APPLE )
   SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 ENDIF()
 
+# Build OpenStudio Applications
+OPTION( BUILD_OPENSTUDIO_APPLICATIONS "Build OpenStudio Applications" ON )
+IF(BUILD_OPENSTUDIO_APPLICATIONS)
+  # Build CSharp bindings
+  OPTION( BUILD_CSHARP_BINDINGS "Build CSharp bindings" OFF )
+
+  # Build Node V8 bindings
+  OPTION( BUILD_V8_BINDINGS "Build V8 bindings" OFF )
+
+  # Build Python bindings
+  OPTION( BUILD_PYTHON_BINDINGS "Build Python bindings" OFF )
+  
+  # Nightly Build
+  OPTION( NIGHTLY_BUILD "Use configurations for Nightly Build" OFF )
+  
+  # Build package
+  OPTION( BUILD_PACKAGE "Build package" OFF )  
+  
+  # Build Ruby gem
+  OPTION( BUILD_RUBY_GEM "Build Ruby Gem" OFF )
+
+  # Package Radiance and EnergyPlus for convenience 
+  OPTION( PACKAGE_RADIANCE_AND_ENERGYPLUS "Package Radiance and EnergyPlus" OFF )
+  MARK_AS_ADVANCED(FORCE PACKAGE_RADIANCE_AND_ENERGYPLUS)  
+ELSE()
+  UNSET(BUILD_CSHARP_BINDINGS CACHE )
+  UNSET(BUILD_V8_BINDINGS CACHE )
+  UNSET(BUILD_PYTHON_BINDINGS CACHE )
+  UNSET(NIGHTLY_BUILD CACHE )
+  UNSET(BUILD_PACKAGE CACHE )
+  UNSET(BUILD_RUBY_GEM CACHE )
+  UNSET(PACKAGE_RADIANCE_AND_ENERGYPLUS CACHE )
+ENDIF()
+
+# Build ctest testing
+OPTION( BUILD_TESTING "Build testing targets" OFF )
+IF (BUILD_TESTING)
+  # Build test runner targets.
+  # This is a convenience for Visual Studio users
+  OPTION( ENABLE_TEST_RUNNER_TARGETS "Create test runner targets" OFF )
+ELSE()
+  UNSET(ENABLE_TEST_RUNNER_TARGETS CACHE )
+ENDIF()
+
 # Build C++ documentation using Doxygen
 # Requires: doxygen
 OPTION( BUILD_DOCUMENTATION "Build Documentation" OFF )
+IF(BUILD_DOCUMENTATION)
+  Find_Package( Doxygen REQUIRED )
+ENDIF()
 
-# Build CSharp bindings
-# Requires: SWIG
-OPTION( BUILD_CSHARP_BINDINGS "Build CSharp bindings" OFF )
-
-# Build V8 Node bindings
-# Requires: SWIG, Node
-OPTION( BUILD_V8_BINDINGS "Build Node V8 bindings" OFF )
-
-# Build Python bindings
-# Requires: SWIG Python
-OPTION( BUILD_PYTHON_BINDINGS "Build Python bindings" OFF )
-
-# Build ctest testing
-# Requires: EnergyPlus
-OPTION( BUILD_TESTING "Build testing targets" OFF )
-
-# Build package
-# Requires: EnergyPlus
-OPTION( BUILD_PACKAGE "Build package" OFF )
-
-# Build test runner targets.
-# This is a convenience for Visual Studio users
-OPTION( ENABLE_TEST_RUNNER_TARGETS "Create test runner targets" OFF )
+# Use PCH
+OPTION( USE_PCH "Use precompiled headers" OFF )
 
 # Build with OpenSSL support
 SET( BUILD_WITH_OPENSSL ON CACHE INTERNAL "Build With OpenSSL Support For SSH Connections" )
 
 # Build R package
 OPTION( BUILD_R "Build R package" OFF )
-
-# Build Ruby gem
-OPTION( BUILD_RUBY_GEM "Build Ruby Gem" OFF )
 
 IF (BUILD_RUBY_GEM)
   FIND_PROGRAM( GEM NAMES gem )
@@ -93,22 +113,8 @@ ENDIF()
 # Configure vagrant 
 SET(SHOW_VAGRANT "false" CACHE BOOL "Show vagrant option to GUI users")
 
-# Require that DAKOTA_FOUND
-#
-# Some code (certain analysisdriver tests) are conditionally compiled depending on 
-# the value of this variable.
-#
-# Dakota is an optional third party algorithm library that we use through its command line
-# interface.
-OPTION( REQUIRE_DAKOTA "Ensure Dakota (third party analysis tool) is found" OFF )
-MARK_AS_ADVANCED( REQUIRE_DAKOTA )
-
-# Use PCH
-OPTION( USE_PCH "Use precompiled headers" OFF )
-
 # Enable support for boost > 1.42 ish by forcing boost_filesystem_version 2
 ADD_DEFINITIONS(-DBOOST_FILESYSTEM_VERSION=2)
-
 
 IF(MSVC)
   # Build with Multiple Processes
@@ -121,30 +127,52 @@ ENDIF()
 ###############################################################################
 # Sub projects
 
-# Each subfolder of src is a major sub-project
-SET( project_directories
-  generateiddfactory
-  utilities
-  model  
-  energyplus
-  radiance
-  gbxml
-  contam
-  isomodel
-  osversion
-  ruleset
-  runmanager/lib
-  runmanager/app
-  analysis
-  project
-  analysisdriver
-  resultsviewer
-  model_editor
-  openstudio_lib
-  openstudio_app
-  pat_app
-  sdd
-)
+IF (BUILD_OPENSTUDIO_APPLICATIONS)
+
+  # Each subfolder of src is a major sub-project
+  SET( project_directories
+    generateiddfactory
+    utilities
+    model  
+    energyplus
+    radiance
+    gbxml
+    contam
+    isomodel
+    osversion
+    ruleset
+    runmanager/lib
+    runmanager/app
+    analysis
+    project
+    analysisdriver
+    resultsviewer
+    model_editor
+    openstudio_lib
+    openstudio_app
+    pat_app
+    sdd
+  )
+
+ELSE()
+
+  # Each subfolder of src is a major sub-project
+  SET( project_directories
+    generateiddfactory
+    utilities
+    model  
+    energyplus
+    radiance
+    gbxml
+    contam
+    isomodel
+    osversion
+    ruleset
+    runmanager/lib
+    sdd
+  )
+
+ENDIF()
 
 
 ###############################################################################
@@ -361,26 +389,6 @@ IF( BUILD_PYTHON_BINDINGS )
   INCLUDE_DIRECTORIES( SYSTEM ${PYTHON_INCLUDE_DIRS} )
   SET( ALL_PYTHON_BINDING_TARGETS "" ) # global list
 ENDIF()
-
-IF (REQUIRE_DAKOTA) 
-  FIND_PACKAGE(Dakota "${DAKOTA_VERSION}" REQUIRED)
-  MARK_AS_ADVANCED(DAKOTA_EXE)
-ELSE (REQUIRE_DAKOTA)
-  # If DAKOTA_FOUND not yet set, and DAKOTA_FOUND comes back false, emit a message
-  SET(EMIT_DAKOTA_WARNING false)
-  IF (NOT DEFINED DAKOTA_FOUND)
-    SET(EMIT_DAKOTA_WARNING true)
-  ENDIF(NOT DEFINED DAKOTA_FOUND)
-  FIND_PACKAGE(Dakota "${DAKOTA_VERSION}")
-  IF (DAKOTA_FOUND)
-    MARK_AS_ADVANCED(DAKOTA_EXE)
-  ELSE (DAKOTA_FOUND)
-    IF (EMIT_DAKOTA_WARNING)
-      MESSAGE(STATUS "DAKOTA was not found on your system. openstudio_analysisdriver_tests that depend on Dakota will not be built.")
-    ENDIF(EMIT_DAKOTA_WARNING)
-  ENDIF(DAKOTA_FOUND)
-ENDIF(REQUIRE_DAKOTA)
-SET(DAKOTA_FOUND ${DAKOTA_FOUND} CACHE INTERNAL "Boolean indicating whether Dakota was found.")
 
 # Doxygen
 IF( BUILD_DOCUMENTATION )
@@ -729,8 +737,10 @@ FOREACH( D ${project_directories} )
   ADD_SUBDIRECTORY( src/${D} )
 ENDFOREACH()
 
-# Make sure resultsviewer has its resources built
-ADD_DEPENDENCIES( ResultsViewer ResultsViewer_resources )
+IF (BUILD_OPENSTUDIO_APPLICATIONS)
+  # Make sure resultsviewer has its resources built
+  ADD_DEPENDENCIES( ResultsViewer ResultsViewer_resources )
+ENDIF()
 
 # ruby, after loading projects
 ADD_SUBDIRECTORY( src/ruby_cpp )
@@ -765,7 +775,6 @@ if ( BUILD_PYTHON_BINDINGS )
   ADD_CUSTOM_TARGET( ALL_PYTHON_BINDINGS )
   ADD_DEPENDENCIES( ALL_PYTHON_BINDINGS ${ALL_PYTHON_BINDING_TARGETS} )
 endif()
-
 
 if ( BUILD_CSHARP_BINDINGS )
   ADD_CUSTOM_TARGET( ALL_CSHARP_BINDINGS )
@@ -808,38 +817,62 @@ ELSE( WIN32 )
   SET(QTWINMIGRATE_EXPORT "")
 ENDIF( WIN32 )
 
-
-export(TARGETS openstudio_runmanager 
-               openstudio_project
-               openstudio_osversion
-               openstudio_model
-               openstudio_modeleditor
-               openstudio_utilities
-               openstudio_energyplus
-               openstudio_analysisdriver
-               openstudio_ruleset
-               openstudio_analysis
-               openstudio_radiance
-               openstudio_gbxml
-               openstudio_isomodel
-               openstudio_lib
-               openstudio_sdd
-               openstudio_contam
-               ${LIBSSH_EXPORT}
-               ${QTWINMIGRATE_EXPORT}
-               zkexpat
-               zkqwt
-               miniziplib
-               sqlite
-               litesql
-               litesql-util
-               ${ALL_RUBY_BINDING_TARGETS}
-       FILE "${TARGETS_FILE}")
+IF (BUILD_OPENSTUDIO_APPLICATIONS)
+  # export libraries
+  export(TARGETS openstudio_runmanager 
+                 openstudio_project
+                 openstudio_osversion
+                 openstudio_model
+                 openstudio_modeleditor
+                 openstudio_utilities
+                 openstudio_energyplus
+                 openstudio_analysisdriver
+                 openstudio_ruleset
+                 openstudio_analysis
+                 openstudio_radiance
+                 openstudio_gbxml
+                 openstudio_isomodel
+                 openstudio_lib
+                 openstudio_sdd
+                 openstudio_contam
+                 ${LIBSSH_EXPORT}
+                 ${QTWINMIGRATE_EXPORT}
+                 zkexpat
+                 zkqwt
+                 miniziplib
+                 sqlite
+                 litesql
+                 litesql-util
+                 ${ALL_RUBY_BINDING_TARGETS}
+         FILE "${TARGETS_FILE}")
+ELSE()
+  # export libraries
+  export(TARGETS openstudio_runmanager 
+                 openstudio_osversion
+                 openstudio_model
+                 openstudio_utilities
+                 openstudio_energyplus
+                 openstudio_ruleset
+                 openstudio_radiance
+                 openstudio_gbxml
+                 openstudio_isomodel
+                 openstudio_sdd
+                 openstudio_contam
+                 ${LIBSSH_EXPORT}
+                 ${QTWINMIGRATE_EXPORT}
+                 zkexpat
+                 zkqwt
+                 miniziplib
+                 sqlite
+                 litesql
+                 litesql-util
+                 ${ALL_RUBY_BINDING_TARGETS}
+         FILE "${TARGETS_FILE}")
+ENDIF()
 
 configure_file("${CMAKE_SOURCE_DIR}/OpenStudioCoreConfig.cmake.in"
   "${CMAKE_BINARY_DIR}/OpenStudioCoreConfig.cmake" @ONLY)
-
-
+  
 IF( UNIX AND NOT APPLE ) 
   SET(examplesdir share/openstudio/examples)
 ELSE()

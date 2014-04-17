@@ -103,7 +103,6 @@ ADD_CUSTOM_TARGET( openstudio_runmanager_resources
 
 CREATE_SRC_GROUPS( "${runmanager_resources_src}" )
 
-
 ########################################################
 # model resources
 # clear runs, calls to RUN_ENERGYPLUS will populate this
@@ -112,8 +111,6 @@ SET(ENERGYPLUS_OUTPUTS "")
 SET(model_resources_src
   model/OpenStudio.idd
 )
-
-
 # update the resources
 UPDATE_RESOURCES("${model_resources_src}")
 
@@ -290,7 +287,6 @@ SET(osversion_resources_src
   osversion/unknown.osc
 )
 
-
 # update the resources
 UPDATE_RESOURCES("${osversion_resources_src}")
 
@@ -299,9 +295,7 @@ ADD_CUSTOM_TARGET( openstudio_osversion_resources
   DEPENDS ${osversion_resources_src} ${ENERGYPLUS_OUTPUTS}
   SOURCES ${osversion_resources_src}
 )
-
 CREATE_SRC_GROUPS( "${osversion_resources_src}" )
-
 
 if (APPLE)
   install( DIRECTORY ${CMAKE_SOURCE_DIR}/resources/osversion
@@ -318,110 +312,6 @@ else()
            DESTINATION share/openstudio
          )
 endif()
-
-
-########################################################
-# modeleditor resources
-# clear runs, calls to RUN_ENERGYPLUS will populate this
-SET(ENERGYPLUS_OUTPUTS "")
-
-SET(modeleditor_resources_src
-)
-
-# update the resources
-UPDATE_RESOURCES("${modeleditor_resources_src}")
-
-# add target
-ADD_CUSTOM_TARGET( openstudio_modeleditor_resources
-  DEPENDS ${modeleditor_resources_src} ${ENERGYPLUS_OUTPUTS}
-  SOURCES ${modeleditor_resources_src}
-)
-
-CREATE_SRC_GROUPS( "${modeleditor_resources_src}" )
-
-########################################################
-# openstudio_lib resources
-# clear runs, calls to RUN_ENERGYPLUS will populate this
-SET(ENERGYPLUS_OUTPUTS "")
-
-SET(openstudio_lib_resources_src
-)
-
-# update the resources
-UPDATE_RESOURCES("${openstudio_lib_resources_src}")
-
-# add target
-ADD_CUSTOM_TARGET(openstudio_lib_resources
-  DEPENDS ${openstudio_lib_resources_src} ${ENERGYPLUS_OUTPUTS}
-  SOURCES ${openstudio_lib_resources_src}
-)
-
-CREATE_SRC_GROUPS( "${openstudio_lib_resources_src}" )
-
-########################################################
-# project resources
-# clear runs, calls to RUN_ENERGYPLUS will populate this
-SET(ENERGYPLUS_OUTPUTS "")
-
-SET(project_resources_src
-  project/buildings/SmallOffice.idf
-  project/locations/LocationDependSets.imf
-  project/version/project_0_8_0.osp
-  project/version/project_0_8_0.db
-  project/version/project_0_8_3.osp
-  project/version/project_0_8_3.db
-  project/version/project_0_9_0.osp
-  project/version/project_0_9_0.db
-  project/version/project_0_10_0.osp
-  project/version/project_0_10_0.db
-  project/version/project_0_10_2.osp
-  project/version/project_0_10_2.db
-  project/version/project_0_10_3.osp
-  project/version/project_0_10_3.db
-  project/version/project_0_10_4.osp
-  project/version/project_0_10_4.db
-  project/version/project_0_11_5.osp
-  project/version/project_0_11_5.db
-  project/version/project_1_0_2.osp
-  project/version/project_1_0_2.db
-  project/version/project_1_0_3.osp
-  project/version/project_1_0_3.db  
-  project/version/project_1_0_4.osp
-  project/version/project_1_0_4.db  
-  project/version/project_1_0_6.osp
-  project/version/project_1_0_6.db  
-)
-
-# update the resources
-UPDATE_RESOURCES("${project_resources_src}")
-
-# add target
-ADD_CUSTOM_TARGET( openstudio_project_resources
-  DEPENDS ${project_resources_src} ${ENERGYPLUS_OUTPUTS}
-  SOURCES ${project_resources_src}
-)
-
-CREATE_SRC_GROUPS( "${project_resources_src}" )
-
-########################################################
-# analysisdriver resources
-# clear runs, calls to RUN_ENERGYPLUS will populate this
-SET(ENERGYPLUS_OUTPUTS "")
-
-SET(analysisdriver_resources_src
-  analysisdriver/PostProcessSecondXML.rb
-)
-
-# update the resources
-UPDATE_RESOURCES("${analysisdriver_resources_src}")
-
-# add target
-ADD_CUSTOM_TARGET( openstudio_analysisdriver_resources
-  DEPENDS ${analysisdriver_resources_src} ${ENERGYPLUS_OUTPUTS}
-  SOURCES ${analysisdriver_resources_src}
-)
-
-CREATE_SRC_GROUPS( "${analysisdriver_resources_src}" )
 
 ########################################################
 # ruleset resources
@@ -527,37 +417,6 @@ ADD_CUSTOM_TARGET( openstudio_radiance_resources
 CREATE_SRC_GROUPS( "${radiance_resources_src}" )
 
 ########################################################
-# resultsviewer resources
-
-# clear runs, calls to RUN_ENERGYPLUS will populate this
-SET(ENERGYPLUS_OUTPUTS "")
-
-SET(ResultsViewer_resources_src
-  resultsviewer/1ZoneEvapCooler/in.idf
-  resultsviewer/1ZoneUncontrolled/in.idf
-  resultsviewer/DaylightingDeviceShelf/in.idf
-  resultsviewer/QkSvcRest/in.idf
-  resultsviewer/SmallOffice/SmallOffice.idf
-  resultsviewer/SolarCollectorFlatPlateWater/in.idf
-)
-
-# update the resources
-UPDATE_RESOURCES("${ResultsViewer_resources_src}")
-
-# add runs
-RUN_ENERGYPLUS("in.idf" "resultsviewer/QkSvcRest" "USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw")
-RUN_ENERGYPLUS("SmallOffice.idf" "resultsviewer/SmallOffice" "USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw")
-
-# add target
-ADD_CUSTOM_TARGET( ResultsViewer_resources
-  DEPENDS ${ResultsViewer_resources_src} ${ENERGYPLUS_OUTPUTS}
-
-  SOURCES ${ResultsViewer_resources_src}
-)
-
-CREATE_SRC_GROUPS( "${ResultsViewer_resources_src}" )
-
-########################################################
 # gbxml resources
 # clear runs, calls to RUN_ENERGYPLUS will populate this
 SET(ENERGYPLUS_OUTPUTS "")
@@ -599,32 +458,6 @@ ADD_CUSTOM_TARGET( openstudio_sdd_resources
 CREATE_SRC_GROUPS( "${sdd_resources_src}" )
 
 ########################################################
-# analysis resources
-# clear runs, calls to RUN_ENERGYPLUS will populate this
-SET(ENERGYPLUS_OUTPUTS "")
-
-SET(analysis_resources_src
-  analysis/version/analysis_1-0-3.json
-  analysis/version/data_point_1-0-3.json
-  analysis/version/analysis_1-0-4.json
-  analysis/version/data_point_1-0-4.json
-  analysis/version/analysis_1-1-1.json
-  analysis/version/data_point_1-1-1.json  
-)
-
-# update the resources
-UPDATE_RESOURCES("${analysis_resources_src}")
-
-# add target
-ADD_CUSTOM_TARGET( openstudio_analysis_resources
-  DEPENDS ${analysis_resources_src} ${ENERGYPLUS_OUTPUTS}
-  SOURCES ${analysis_resources_src}
-)
-
-CREATE_SRC_GROUPS( "${analysis_resources_src}" )
-
-
-########################################################
 # isomodel resources
 # clear runs, calls to RUN_ENERGYPLUS will populate this
 SET(ENERGYPLUS_OUTPUTS "")
@@ -644,6 +477,7 @@ ADD_CUSTOM_TARGET( openstudio_isomodel_resources
 )
 
 CREATE_SRC_GROUPS( "${isomodel_resources_src}" )
+
 ########################################################
 # CONTAM resources
 # clear runs, calls to RUN_ENERGYPLUS will populate this
@@ -663,3 +497,168 @@ ADD_CUSTOM_TARGET( openstudio_contam_resources
 )
 
 CREATE_SRC_GROUPS( "${contam_resources_src}" )
+
+
+########################################################
+IF (BUILD_OPENSTUDIO_APPLICATIONS)
+
+  ########################################################
+  # openstudio_lib resources
+  # clear runs, calls to RUN_ENERGYPLUS will populate this
+  SET(ENERGYPLUS_OUTPUTS "")
+
+  SET(openstudio_lib_resources_src
+  )
+
+  # update the resources
+  UPDATE_RESOURCES("${openstudio_lib_resources_src}")
+
+  # add target
+  ADD_CUSTOM_TARGET(openstudio_lib_resources
+    DEPENDS ${openstudio_lib_resources_src} ${ENERGYPLUS_OUTPUTS}
+    SOURCES ${openstudio_lib_resources_src}
+  )
+
+  CREATE_SRC_GROUPS( "${openstudio_lib_resources_src}" )
+
+  ########################################################
+  # modeleditor resources
+  # clear runs, calls to RUN_ENERGYPLUS will populate this
+  SET(ENERGYPLUS_OUTPUTS "")
+
+  SET(modeleditor_resources_src
+  )
+
+  # update the resources
+  UPDATE_RESOURCES("${modeleditor_resources_src}")
+
+  # add target
+  ADD_CUSTOM_TARGET( openstudio_modeleditor_resources
+    DEPENDS ${modeleditor_resources_src} ${ENERGYPLUS_OUTPUTS}
+    SOURCES ${modeleditor_resources_src}
+  )
+
+  CREATE_SRC_GROUPS( "${modeleditor_resources_src}" )
+
+  ########################################################
+  # resultsviewer resources
+
+  # clear runs, calls to RUN_ENERGYPLUS will populate this
+  SET(ENERGYPLUS_OUTPUTS "")
+
+  SET(ResultsViewer_resources_src
+    resultsviewer/1ZoneEvapCooler/in.idf
+    resultsviewer/1ZoneUncontrolled/in.idf
+    resultsviewer/DaylightingDeviceShelf/in.idf
+    resultsviewer/QkSvcRest/in.idf
+    resultsviewer/SmallOffice/SmallOffice.idf
+    resultsviewer/SolarCollectorFlatPlateWater/in.idf
+  )
+
+  # update the resources
+  UPDATE_RESOURCES("${ResultsViewer_resources_src}")
+
+  # add runs
+  RUN_ENERGYPLUS("in.idf" "resultsviewer/QkSvcRest" "USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw")
+  RUN_ENERGYPLUS("SmallOffice.idf" "resultsviewer/SmallOffice" "USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw")
+
+  # add target
+  ADD_CUSTOM_TARGET( ResultsViewer_resources
+    DEPENDS ${ResultsViewer_resources_src} ${ENERGYPLUS_OUTPUTS}
+
+    SOURCES ${ResultsViewer_resources_src}
+  )
+
+  CREATE_SRC_GROUPS( "${ResultsViewer_resources_src}" )
+
+  ########################################################
+  # analysis resources
+  # clear runs, calls to RUN_ENERGYPLUS will populate this
+  SET(ENERGYPLUS_OUTPUTS "")
+
+  SET(analysis_resources_src
+    analysis/version/analysis_1-0-3.json
+    analysis/version/data_point_1-0-3.json
+    analysis/version/analysis_1-0-4.json
+    analysis/version/data_point_1-0-4.json
+    analysis/version/analysis_1-1-1.json
+    analysis/version/data_point_1-1-1.json  
+  )
+
+  # update the resources
+  UPDATE_RESOURCES("${analysis_resources_src}")
+
+  # add target
+  ADD_CUSTOM_TARGET( openstudio_analysis_resources
+    DEPENDS ${analysis_resources_src} ${ENERGYPLUS_OUTPUTS}
+    SOURCES ${analysis_resources_src}
+  )
+
+  CREATE_SRC_GROUPS( "${analysis_resources_src}" )
+
+  ########################################################
+  # project resources
+  # clear runs, calls to RUN_ENERGYPLUS will populate this
+  SET(ENERGYPLUS_OUTPUTS "")
+
+  SET(project_resources_src
+    project/buildings/SmallOffice.idf
+    project/locations/LocationDependSets.imf
+    project/version/project_0_8_0.osp
+    project/version/project_0_8_0.db
+    project/version/project_0_8_3.osp
+    project/version/project_0_8_3.db
+    project/version/project_0_9_0.osp
+    project/version/project_0_9_0.db
+    project/version/project_0_10_0.osp
+    project/version/project_0_10_0.db
+    project/version/project_0_10_2.osp
+    project/version/project_0_10_2.db
+    project/version/project_0_10_3.osp
+    project/version/project_0_10_3.db
+    project/version/project_0_10_4.osp
+    project/version/project_0_10_4.db
+    project/version/project_0_11_5.osp
+    project/version/project_0_11_5.db
+    project/version/project_1_0_2.osp
+    project/version/project_1_0_2.db
+    project/version/project_1_0_3.osp
+    project/version/project_1_0_3.db  
+    project/version/project_1_0_4.osp
+    project/version/project_1_0_4.db  
+    project/version/project_1_0_6.osp
+    project/version/project_1_0_6.db  
+  )
+
+  # update the resources
+  UPDATE_RESOURCES("${project_resources_src}")
+
+  # add target
+  ADD_CUSTOM_TARGET( openstudio_project_resources
+    DEPENDS ${project_resources_src} ${ENERGYPLUS_OUTPUTS}
+    SOURCES ${project_resources_src}
+  )
+
+  CREATE_SRC_GROUPS( "${project_resources_src}" )
+
+  ########################################################
+  # analysisdriver resources
+  # clear runs, calls to RUN_ENERGYPLUS will populate this
+  SET(ENERGYPLUS_OUTPUTS "")
+
+  SET(analysisdriver_resources_src
+    analysisdriver/PostProcessSecondXML.rb
+  )
+
+  # update the resources
+  UPDATE_RESOURCES("${analysisdriver_resources_src}")
+
+  # add target
+  ADD_CUSTOM_TARGET( openstudio_analysisdriver_resources
+    DEPENDS ${analysisdriver_resources_src} ${ENERGYPLUS_OUTPUTS}
+    SOURCES ${analysisdriver_resources_src}
+  )
+
+  CREATE_SRC_GROUPS( "${analysisdriver_resources_src}" )
+
+ENDIF()

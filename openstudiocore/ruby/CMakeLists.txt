@@ -19,6 +19,8 @@ file(GLOB_RECURSE RUBY_SRC "openstudio/*.rb" "cloud/*.template" "cloud/*.sh")
 # find all tests
 file(GLOB_RECURSE RUBY_TEST_SRC "openstudio/*_Test.rb")
 
+# DLM: TODO duplicate this for BUILD_OPENSTUDIO_APPLICATIONS
+
 # add a test for each unit test
 SET( RUBY_TEST_REQUIRES "#include test files" )
 FOREACH( f ${RUBY_TEST_SRC} )
@@ -191,7 +193,11 @@ ENDIF()
 # some unit tests previously defined depend on the ruby bindings, set those here so they are all defined
 IF( BUILD_TESTING )
   ADD_DEPENDENCIES(openstudio_runmanager_tests ${ALL_RUBY_BINDING_TARGETS})
-  ADD_DEPENDENCIES(openstudio_analysisdriver_tests ${ALL_RUBY_BINDING_TARGETS})
+  
+  IF ( BUILD_OPENSTUDIO_APPLICATIONS )
+    ADD_DEPENDENCIES(openstudio_analysisdriver_tests ${ALL_RUBY_BINDING_TARGETS})
+  ENDIF()
+  
 ENDIF()
 
 # run all the unit tests
