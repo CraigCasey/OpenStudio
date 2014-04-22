@@ -1,3 +1,7 @@
 require "#{File.dirname(__FILE__)}/openstudio"
 
+if "${BUILD_OPENSTUDIO_APPLICATIONS}" == "ON"
+  require "#{File.dirname(__FILE__)}/openstudio"
+end
+
 ${RUBY_TEST_REQUIRES}

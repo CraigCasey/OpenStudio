@@ -13,13 +13,13 @@ ENDIF()
 
 INCLUDE(GetPrerequisites)
 
-# find all source
-file(GLOB_RECURSE RUBY_SRC "openstudio/*.rb" "cloud/*.template" "cloud/*.sh")
-
-# find all tests
-file(GLOB_RECURSE RUBY_TEST_SRC "openstudio/*_Test.rb")
-
-# DLM: TODO duplicate this for BUILD_OPENSTUDIO_APPLICATIONS
+IF(BUILD_OPENSTUDIO_APPLICATIONS)
+  file(GLOB_RECURSE RUBY_SRC "openstudio/*.rb" "openstudio_applications/*.rb" "cloud/*.template" "cloud/*.sh")
+  file(GLOB_RECURSE RUBY_TEST_SRC "openstudio/*_Test.rb" "openstudio_applications/*_Test.rb")
+ELSE()
+  file(GLOB_RECURSE RUBY_SRC "openstudio/*.rb" "cloud/*.template" "cloud/*.sh")
+  file(GLOB_RECURSE RUBY_TEST_SRC "openstudio/*_Test.rb")
+ENDIF()
 
 # add a test for each unit test
 SET( RUBY_TEST_REQUIRES "#include test files" )
@@ -57,8 +57,11 @@ ENDFOREACH( f ${RUBY_TEST_SRC} )
 FILE( COPY "${CMAKE_SOURCE_DIR}/ruby/openstudio.rb" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/install" )
 FILE( COPY "${CMAKE_SOURCE_DIR}/ruby/Win32API.so" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/install" )
 CONFIGURE_FILE( "${CMAKE_SOURCE_DIR}/ruby/openstudio_test.in" "${CMAKE_CURRENT_BINARY_DIR}/install/openstudio_test.rb" )
-CONFIGURE_FILE( "${CMAKE_SOURCE_DIR}/ruby/openstudio/sketchup_plugin/Startup.in" "${CMAKE_CURRENT_BINARY_DIR}/install/SketchUp/Plugins/OpenStudio/Startup.rb" )
-FILE( COPY "${CMAKE_SOURCE_DIR}/ruby/openstudio/sketchup_plugin/OpenStudio.rb" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/install/SketchUp/Plugins" )
+
+IF(BUILD_OPENSTUDIO_APPLICATIONS)
+  CONFIGURE_FILE( "${CMAKE_SOURCE_DIR}/ruby/openstudio_applications/sketchup_plugin/Startup.in" "${CMAKE_CURRENT_BINARY_DIR}/install/SketchUp/Plugins/OpenStudio/Startup.rb" )
+  FILE( COPY "${CMAKE_SOURCE_DIR}/ruby/openstudio_applications/sketchup_plugin/OpenStudio.rb" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/install/SketchUp/Plugins" )
+ENDIF()
 
 CONFIGURE_FILE( "${CMAKE_SOURCE_DIR}/ruby/cloud/aws.rb.in" "${CMAKE_CURRENT_BINARY_DIR}/cloud/aws.rb" )
 IF (WIN32 OR APPLE)
@@ -168,9 +171,14 @@ FOREACH(POSSIBLE_CONFIGURATION ${POSSIBLE_CONFIGURATIONS})
 
   CONFIGURE_FILE( "${CMAKE_SOURCE_DIR}/ruby/config.in" "${CMAKE_CURRENT_BINARY_DIR}/${POSSIBLE_CONFIGURATION}/config.rb" )
   CONFIGURE_FILE( "${CMAKE_SOURCE_DIR}/ruby/openstudio_test.in" "${CMAKE_CURRENT_BINARY_DIR}/${POSSIBLE_CONFIGURATION}/openstudio_test.rb" )
-
-  CONFIGURE_FILE( "${CMAKE_SOURCE_DIR}/ruby/openstudio/sketchup_plugin/Startup_dev.in" "${CMAKE_CURRENT_BINARY_DIR}/${POSSIBLE_CONFIGURATION}/SketchUp/Plugins/OpenStudio/Startup.rb" )
-  FILE( COPY "${CMAKE_SOURCE_DIR}/ruby/openstudio/sketchup_plugin/OpenStudio.rb" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${POSSIBLE_CONFIGURATION}/SketchUp/Plugins" )
+  
+  IF (BUILD_OPENSTUDIO_APPLICATIONS)
+    FILE( COPY "${CMAKE_SOURCE_DIR}/ruby/openstudio_applications_dev.rb" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${POSSIBLE_CONFIGURATION}" )
+    FILE( RENAME "${CMAKE_CURRENT_BINARY_DIR}/${POSSIBLE_CONFIGURATION}/openstudio_applications_dev.rb" "${CMAKE_CURRENT_BINARY_DIR}/${POSSIBLE_CONFIGURATION}/openstudio_applications.rb" )
+    
+    CONFIGURE_FILE( "${CMAKE_SOURCE_DIR}/ruby/openstudio_applications/sketchup_plugin/Startup_dev.in" "${CMAKE_CURRENT_BINARY_DIR}/${POSSIBLE_CONFIGURATION}/SketchUp/Plugins/OpenStudio/Startup.rb" )
+    FILE( COPY "${CMAKE_SOURCE_DIR}/ruby/openstudio_applications/sketchup_plugin/OpenStudio.rb" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${POSSIBLE_CONFIGURATION}/SketchUp/Plugins" )
+  ENDIF()
   
   IF( WIN32 AND ${BUILD_WITH_OPENSSL} AND ${OPENSSL_FOUND} )
     FILE(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/Products/ruby/${POSSIBLE_CONFIGURATION}")
@@ -219,8 +227,12 @@ ENDIF()
 INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/install/openstudio.rb" DESTINATION ${RUBY_MODULE_DIR} )
 INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/install/Win32API.so" DESTINATION ${RUBY_MODULE_DIR} )
 INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/install/openstudio_test.rb" DESTINATION ${RUBY_MODULE_DIR} )
-INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/install/SketchUp/Plugins/OpenStudio/Startup.rb" DESTINATION "${RUBY_MODULE_DIR}/Plugins/OpenStudio/" )
-INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/install/SketchUp/Plugins/OpenStudio.rb" DESTINATION "${RUBY_MODULE_DIR}/Plugins/" )
+
+IF(BUILD_OPENSTUDIO_APPLICATIONS)
+  INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/install/openstudio_applications.rb" DESTINATION ${RUBY_MODULE_DIR} )
+  INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/install/SketchUp/Plugins/OpenStudio/Startup.rb" DESTINATION "${RUBY_MODULE_DIR}/Plugins/OpenStudio/" )
+  INSTALL( FILES "${CMAKE_CURRENT_BINARY_DIR}/install/SketchUp/Plugins/OpenStudio.rb" DESTINATION "${RUBY_MODULE_DIR}/Plugins/" )
+ENDIF()
 
 # installation
 IF (WIN32 OR APPLE)
@@ -240,7 +252,9 @@ ELSE() #Linux
   ENDFOREACH(f)
 ENDIF()
 
-# install the openstudio resources (html, gif, etc.)
-INSTALL( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/openstudio/sketchup_plugin"
-        DESTINATION "${RUBY_MODULE_DIR}/openstudio"
-        PATTERN "*.rb" EXCLUDE )
+IF(BUILD_OPENSTUDIO_APPLICATIONS)
+  # install the openstudio resources (html, gif, etc.)
+  INSTALL( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/openstudio_applications/sketchup_plugin"
+          DESTINATION "${RUBY_MODULE_DIR}/openstudio_applications"
+          PATTERN "*.rb" EXCLUDE )
+ENDIF()
